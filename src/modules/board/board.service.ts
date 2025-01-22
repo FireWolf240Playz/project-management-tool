@@ -1,17 +1,29 @@
 import { Injectable } from '@nestjs/common';
-import { Board } from './interfaces';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Board } from './schemas/board.schema';
 
 @Injectable()
 export class BoardService {
-  private boards: Board[] = [];
+  constructor(
+    @InjectModel(Board.name) private readonly boardModel: Model<Board>,
+  ) {}
 
-  getAllBoards(): Board[] {
-    return this.boards;
+  /**
+   * Get all boards.
+   * @returns An array of boards
+   */
+  async getAllBoards(): Promise<Board[]> {
+    return this.boardModel.find().exec();
   }
 
-  createBoard(boardData: Omit<Board, 'id'>): Board {
-    const newBoard: Board = { id: Date.now(), ...boardData };
-    this.boards.push(newBoard);
-    return newBoard;
+  /**
+   * Create a new board.
+   * @param boardData - Data for the new board
+   * @returns The newly created board
+   */
+  async createBoard(boardData: Partial<Board>): Promise<Board> {
+    const newBoard = new this.boardModel(boardData);
+    return newBoard.save();
   }
 }

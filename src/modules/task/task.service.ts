@@ -1,72 +1,57 @@
 import { Injectable } from '@nestjs/common';
-import { Task } from './interfaces';
-import { v4 as uuidv4 } from 'uuid'; // For generating unique IDs
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Task } from './schemas/task.schema';
 
 @Injectable()
 export class TaskService {
-  private tasks: Task[] = []; // In-memory storage for tasks
+  constructor(
+    @InjectModel(Task.name) private readonly taskModel: Model<Task>,
+  ) {}
 
   /**
-   * Get all tasks for a specific board or column.
-   * @param boardId - ID of the board
-   * @param columnId - ID of the column (optional)
+   * Get all boards.
    * @returns An array of tasks
    */
-  getTasks(boardId: string, columnId?: string): Task[] {
-    return this.tasks.filter(
-      (task) =>
-        task.boardId === boardId && (!columnId || task.columnId === columnId),
-    );
+  async getTasks(boardId: string, columnId?: string): Promise<Task[]> {
+    const query = columnId ? { boardId, columnId } : { boardId };
+    return this.taskModel.find(query).exec();
   }
 
   /**
-   * Create a new task.
-   * @param taskData - Data for the new task (excluding id and createdAt)
-   * @returns The newly created task
+   * Create a new board.
+   * @param taskData - Data for the new comment
+   * @returns The newly created tasks
    */
-  createTask(taskData: Omit<Task, 'id' | 'createdAt'>): Task {
-    const newTask: Task = {
-      id: uuidv4(), // Generate a unique ID
-      createdAt: new Date(), // Auto-generate the creation timestamp
-      ...taskData,
-    };
-    this.tasks.push(newTask); // Add the new task to the in-memory array
-    return newTask;
+  async createTask(taskData: Partial<Task>): Promise<Task> {
+    const newTask = new this.taskModel(taskData);
+    return newTask.save();
   }
 
   /**
-   * Update an existing task.
-   * @param taskId - ID of the task to update
-   * @param updatedData - Partial data to update in the task
-   * @returns The updated task, or null if not found
+   * Create a new board.
+   * @param taskId - find the comment
+   * @param updatedData - update the data
+   * @returns The newly created comment
    */
-  updateTask(
+
+  async updateTask(
     taskId: string,
-    updatedData: Partial<
-      Omit<Task, 'id' | 'boardId' | 'columnId' | 'createdAt'>
-    >,
-  ): Task | null {
-    const taskIndex = this.tasks.findIndex((task) => task.id === taskId);
-    if (taskIndex === -1) {
-      return null; // Task not found
-    }
-    const updatedTask = {
-      ...this.tasks[taskIndex],
-      ...updatedData,
-      updatedAt: new Date(), // Update the timestamp
-    };
-    this.tasks[taskIndex] = updatedTask;
-    return updatedTask;
+    updatedData: Partial<Task>,
+  ): Promise<Task | null> {
+    return this.taskModel
+      .findByIdAndUpdate(taskId, updatedData, { new: true })
+      .exec();
   }
 
   /**
-   * Delete a task by ID.
-   * @param taskId - ID of the task to delete
-   * @returns `true` if the task was deleted, `false` if not found
+   * Create a new board.
+   * @param taskId - find the comment
+   * @returns the new number of comments
    */
-  deleteTask(taskId: string): boolean {
-    const initialLength = this.tasks.length;
-    this.tasks = this.tasks.filter((task) => task.id !== taskId);
-    return this.tasks.length < initialLength; // Return true if a task was removed
+
+  async deleteTask(taskId: string): Promise<boolean> {
+    const result = await this.taskModel.deleteOne({ _id: taskId }).exec();
+    return result.deletedCount > 0;
   }
 }

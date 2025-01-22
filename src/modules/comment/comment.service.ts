@@ -1,72 +1,61 @@
 import { Injectable } from '@nestjs/common';
-import { Comment } from './interfaces';
-import { v4 as uuidv4 } from 'uuid';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Comment } from './schemas/comment.schema';
 
 @Injectable()
 export class CommentService {
-  private comments: Comment[] = [];
-
-  getAllComments() {
-    return this.comments;
-  }
-
+  constructor(
+    @InjectModel(Comment.name) private readonly commentModel: Model<Comment>,
+  ) {}
   /**
-   * Get all comments for a specific task.
-   * @param taskId - ID of the task
-   * @returns An array of comments associated with the task
+   * Get all comments.
+   * @returns An array of boards
    */
-  getCommentsForTask(taskId: string): Comment[] {
-    return this.comments.filter((comment) => comment.taskId === taskId);
+  async getAllComments(): Promise<Comment[]> {
+    return this.commentModel.find().exec();
+  }
+  /**
+   * Get all comments for task.
+   * @param taskId - id of the task
+   * @returns An array of comments
+   */
+  async getCommentsForTask(taskId: string): Promise<Comment[]> {
+    return this.commentModel.find({ taskId }).exec();
   }
 
   /**
-   * Create a new comment.
-   * @param commentData - Data for the new comment (excluding id and createdAt)
+   * Create a new board.
+   * @param commentData - Data for the new comment
    * @returns The newly created comment
    */
-  createComment(commentData: Omit<Comment, 'id' | 'createdAt'>): Comment {
-    const newComment: Comment = {
-      id: uuidv4(),
-      createdAt: new Date(),
-      ...commentData,
-    };
-    this.comments.push(newComment);
-    return newComment;
+
+  async createComment(commentData: Partial<Comment>): Promise<Comment> {
+    const newComment = new this.commentModel(commentData);
+    return newComment.save();
   }
 
   /**
-   * Update an existing comment.
-   * @param commentId - ID of the comment to update
-   * @param updatedData - Partial data to update in the comment
-   * @returns The updated comment, or null if not found
+   * Create a new board.
+   * @param commentId - find the comment
+   * @param updatedData - update the data
+   * @returns The newly created comment
    */
-  updateComment(
+  async updateComment(
     commentId: string,
-    updatedData: Partial<Omit<Comment, 'id' | 'taskId' | 'createdAt'>>,
-  ): Comment | null {
-    const commentIndex = this.comments.findIndex(
-      (comment) => comment.id === commentId,
-    );
-    if (commentIndex === -1) {
-      return null;
-    }
-    const updatedComment = {
-      ...this.comments[commentIndex],
-      ...updatedData,
-      updatedAt: new Date(),
-    };
-    this.comments[commentIndex] = updatedComment;
-    return updatedComment;
+    updatedData: Partial<Comment>,
+  ): Promise<Comment | null> {
+    return this.commentModel
+      .findByIdAndUpdate(commentId, updatedData, { new: true })
+      .exec();
   }
-
-  /**
-   * Delete a comment by ID.
-   * @param commentId - ID of the comment to delete
-   * @returns `true` if the comment was deleted, `false` if not found
+  /*
+   * Create a new board.
+   * @param commentId - find the comment
+   * @returns The new number of the comments
    */
-  deleteComment(commentId: string): boolean {
-    const initialLength = this.comments.length;
-    this.comments = this.comments.filter((comment) => comment.id !== commentId);
-    return this.comments.length < initialLength;
+  async deleteComment(commentId: string): Promise<boolean> {
+    const result = await this.commentModel.deleteOne({ _id: commentId }).exec();
+    return result.deletedCount > 0;
   }
 }
