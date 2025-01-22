@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
-@Schema()
+@Schema({ timestamps: true })
 export class Comment extends Document {
   @Prop({ required: true, type: Types.ObjectId, ref: 'Task' })
   taskId: Types.ObjectId;
@@ -11,12 +11,6 @@ export class Comment extends Document {
 
   @Prop({ required: true })
   text: string;
-
-  @Prop({ default: Date.now })
-  createdAt: Date;
-
-  @Prop()
-  updatedAt?: Date;
 }
 
 export const CommentSchema = SchemaFactory.createForClass(Comment);

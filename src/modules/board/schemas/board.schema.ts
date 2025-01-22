@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
-@Schema()
+@Schema({ timestamps: true })
 export class Board extends Document {
   @Prop({ required: true })
   title: string;
@@ -11,9 +11,6 @@ export class Board extends Document {
 
   @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }], default: [] })
   members: Types.ObjectId[];
-
-  @Prop({ default: Date.now })
-  createdAt: Date;
 }
 
 export const BoardSchema = SchemaFactory.createForClass(Board);

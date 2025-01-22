@@ -9,38 +9,35 @@ import {
   Query,
 } from '@nestjs/common';
 import { TaskService } from './task.service';
-import { Task } from './interfaces';
+import { Task } from './schemas/task.schema';
 
 @Controller('tasks')
 export class TaskController {
   constructor(private readonly taskService: TaskService) {}
 
   @Get()
-  getTasks(
+  async getTasks(
     @Query('boardId') boardId: string,
     @Query('columnId') columnId?: string,
-  ): Task[] {
+  ): Promise<Task[]> {
     return this.taskService.getTasks(boardId, columnId);
   }
 
   @Post()
-  createTask(@Body() taskData: Omit<Task, 'id' | 'createdAt'>): Task {
+  async createTask(
+    @Body() taskData: Omit<Task, 'id' | 'createdAt'>,
+  ): Promise<Task> {
     return this.taskService.createTask(taskData);
   }
 
   @Patch(':id')
-  updateTask(
+  async updateTask(
     @Param('id') taskId: string,
     @Body()
     updatedData: Partial<
       Omit<Task, 'id' | 'boardId' | 'columnId' | 'createdAt'>
     >,
-  ): Task | null {
+  ): Promise<Task | null> {
     return this.taskService.updateTask(taskId, updatedData);
-  }
-
-  @Delete(':id')
-  deleteTask(@Param('id') taskId: string): boolean {
-    return this.taskService.deleteTask(taskId);
   }
 }
