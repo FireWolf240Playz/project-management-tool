@@ -1,10 +1,20 @@
 import { Module } from '@nestjs/common';
-import { UserModule } from './modules/user/user.module';
-import { BoardModule } from './modules/board/board.module';
-import { TaskModule } from './modules/task/task.module';
-import { CommentModule } from './modules/comment/comment.module';
+import { ConfigModule } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
+import { AppService } from './app.service';
+import { AppController } from './app.controller';
 
 @Module({
-  imports: [UserModule, BoardModule, TaskModule, CommentModule],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    JwtModule.register({
+      secret: process.env.JWT_SECRET || 'default_secret',
+      signOptions: { expiresIn: '1h' },
+    }),
+  ],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}
