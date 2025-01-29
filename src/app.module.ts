@@ -7,6 +7,7 @@ import { BoardModule } from './modules/board/board.module';
 import { TaskModule } from './modules/task/task.module';
 import { CommentModule } from './modules/comment/comment.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { CollaborationModule } from './modules/collaboration/collaboration.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { AuthModule } from './modules/auth/auth.module';
     TaskModule,
     CommentModule,
     AuthModule,
+    CollaborationModule,
   ],
 })
 export class AppModule {}
