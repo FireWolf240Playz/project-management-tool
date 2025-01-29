@@ -6,10 +6,13 @@ import {
   Delete,
   Param,
   Body,
+  UseGuards,
 } from '@nestjs/common';
 import { ColumnService } from './column.service';
 import { Column } from './schemas/column.schema';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('columns')
 export class ColumnController {
   constructor(private readonly columnService: ColumnService) {}

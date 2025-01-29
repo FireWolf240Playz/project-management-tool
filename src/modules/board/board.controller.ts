@@ -1,7 +1,9 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
 import { BoardService } from './board.service';
-import { Board } from './schemas/board.schema'; // Use the Mongoose schema type
+import { Board } from './schemas/board.schema';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard'; // Use the Mongoose schema type
 
+@UseGuards(JwtAuthGuard)
 @Controller('boards')
 export class BoardController {
   constructor(private readonly boardService: BoardService) {}
